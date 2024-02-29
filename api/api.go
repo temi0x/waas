@@ -9,6 +9,12 @@ type CreateWaasRequest struct{
 	Password string
 }
 
+type CreateWaasResponse struct{
+	Success bool
+	address string
+	ciphertext string
+}
+
 //Error response
 type Error struct {
 	Code int
