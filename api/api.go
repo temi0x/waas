@@ -5,25 +5,25 @@ import (
 	"net/http"
 )
 
-type CreateWaasRequest struct{
-	Password string
+type CreateWalletParams struct {
+	PIN string
 }
 
-type CreateWaasResponse struct{
-	Success bool
-	address string
-	ciphertext string
+type CreateWaasResponse struct {
+	Success    bool
+	Address    string
+	Ciphertext []byte
 }
 
-//Error response
+// Error response
 type Error struct {
-	Code int
+	Code    int
 	Message string
 }
 
 func WriteError(w http.ResponseWriter, message string, code int) {
-	resp:= Error{
-		Code: code,
+	resp := Error{
+		Code:    code,
 		Message: message,
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -33,10 +33,10 @@ func WriteError(w http.ResponseWriter, message string, code int) {
 }
 
 var (
-	RequestErrorHandler = func (w http.ResponseWriter, err error) {
+	RequestErrorHandler = func(w http.ResponseWriter, err error) {
 		WriteError(w, err.Error(), http.StatusBadRequest)
 	}
-	InternalErrorHandler = func (w http.ResponseWriter, err error) {
+	InternalErrorHandler = func(w http.ResponseWriter, err error) {
 		WriteError(w, "An Unexpected Error Occurred", http.StatusInternalServerError)
 	}
 )
