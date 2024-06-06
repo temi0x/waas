@@ -43,3 +43,16 @@ func StoreWalletDetails(nonce []byte, address string, hashedpin []byte, cipherte
 
 	return nil
 }
+
+func GetWalletDetails(address string) ([]byte, []byte, error) {
+	var nonce []byte
+	var hashedpin []byte
+	var ciphertext []byte
+
+	err := DB.QueryRow("SELECT nonce, hashedpin, ciphertext FROM wallets WHERE address = ?", address).Scan(&nonce, &hashedpin, &ciphertext)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return nonce, ciphertext, nil
+}
