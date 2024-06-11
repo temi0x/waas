@@ -3,18 +3,25 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"waas/internal/tools"
 
 	"waas/internal/handlers"
 
 	"github.com/go-chi/chi"
-	"github.com/joho/godotenv"
 	_ "github.com/joho/godotenv/autoload"
 
 	log "github.com/sirupsen/logrus"
 )
 
 func main() {
-	godotenv.Load(".env")
+	//godotenv.Load(".env")
+
+	DB, err := tools.InitDatabase()
+	if err != nil {
+		log.Fatalf("Failed to set up the database: %e", err)
+	} else {
+		log.Printf("Database has started: %v", DB)
+	}
 
 	log.SetReportCaller(true)
 	var r *chi.Mux = chi.NewRouter()
@@ -22,8 +29,14 @@ func main() {
 
 	fmt.Println("Starting Server on 8000")
 
-	err := http.ListenAndServe("localhost:8000", r)
+	err = http.ListenAndServe("localhost:8000", r)
 	if err != nil {
 		log.Error("Error starting server", err)
+	}
+
+	err = DB.Close()
+	if err != nil {
+		log.Fatalf("Failed to close DB: %v", err)
+		return
 	}
 }

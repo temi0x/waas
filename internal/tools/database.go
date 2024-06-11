@@ -16,11 +16,11 @@ import (
 
 var DB *sql.DB
 
-func init() {
+func InitDatabase() (*sql.DB, error) {
 	cfg, err := config.LoadConfig()
 	if err != nil {
 		log.Error("failed to load configuration: " + err.Error())
-		return
+		return nil, err
 	}
 
 	var sqlUsername = cfg.SqlUsername
@@ -34,13 +34,18 @@ func init() {
 	DB, err := sql.Open("mysql", sqlparams)
 	if err != nil {
 		log.Error("Error connecting to database", err)
+		return nil, err
 	}
 
 	err = DB.Ping()
 	if err != nil {
 		log.Error("Error pinging database ", err)
+		return nil, err
 	}
+
+	return DB, nil
 }
+
 func StoreWalletDetails(nonce []byte, address string, hashedpin []byte, ciphertext []byte) error {
 	stmt, err := DB.Prepare("INSERT INTO wallets (nonce, address, hashedpin, ciphertext) VALUES (?, ?, ?, ?)")
 	if err != nil {
