@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"waas/internal/database"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -18,7 +19,6 @@ import (
 	// "github.com/joho/godotenv"
 
 	"waas/api"
-	"waas/internal/tools"
 	"waas/internal/tools/wallet"
 
 	"github.com/gorilla/schema"
@@ -47,7 +47,7 @@ func CreateWallet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Store the wallet in the database
-	err = tools.StoreWalletDetails(nonce, address, key, ciphertext)
+	err = database.StoreWalletDetails(nonce, address, key, ciphertext)
 	if err != nil {
 		log.Error(err)
 		api.InternalErrorHandler(w, err)
@@ -119,7 +119,7 @@ func SendToken(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// get nonce & ciphertext from database
-	eNonce, ciphertext, err := tools.GetWalletDetails(params.UserAddress)
+	eNonce, ciphertext, err := database.GetWalletDetails(params.UserAddress)
 	if err != nil {
 		api.InternalErrorHandler(w, err)
 		log.Error("Error getting wallet details", err)

@@ -3,8 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http"
-	"waas/internal/tools"
-
+	"waas/internal/database"
 	"waas/internal/handlers"
 
 	"github.com/go-chi/chi"
@@ -14,9 +13,7 @@ import (
 )
 
 func main() {
-	//godotenv.Load(".env")
-
-	DB, err := tools.InitDatabase()
+	DB, err := database.InitDatabase()
 	if err != nil {
 		log.Fatalf("Failed to set up the database: %e", err)
 	} else {

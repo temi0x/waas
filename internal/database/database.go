@@ -1,4 +1,4 @@
-package tools
+package database
 
 import (
 	"database/sql"
@@ -9,8 +9,7 @@ import (
 	"waas/config"
 
 	_ "github.com/go-sql-driver/mysql"
-	// "github.com/joho/godotenv"
-	_ "github.com/joho/godotenv/autoload"
+
 	log "github.com/sirupsen/logrus"
 )
 
@@ -27,9 +26,8 @@ func InitDatabase() (*sql.DB, error) {
 	var sqlPassword = cfg.SqlPassword
 	var sqlUrl = cfg.SqlUrl
 	var dbName = cfg.DbName
-	// godotenv.Load()
+
 	var sqlparams = fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", sqlUsername, sqlPassword, sqlUrl, dbName)
-	// var sqlparams = fmt.Sprintf("root:12345678@tcp(127.0.0.1)/waas?charset=utf8mb4&parseTime=True&loc=Local")
 
 	DB, err := sql.Open("mysql", sqlparams)
 	if err != nil {
