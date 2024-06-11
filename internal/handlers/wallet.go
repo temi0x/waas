@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-	"waas/internal/database"
+	database "waas/internal/database"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -16,6 +16,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
+
 	// "github.com/joho/godotenv"
 
 	"waas/api"
@@ -47,7 +48,7 @@ func CreateWallet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Store the wallet in the database
-	err = database.StoreWalletDetails(nonce, address, key, ciphertext)
+	err = database.StoreWalletDetails(nonce, address, ciphertext, key)
 	if err != nil {
 		log.Error(err)
 		api.InternalErrorHandler(w, err)

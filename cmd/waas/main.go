@@ -13,7 +13,7 @@ import (
 )
 
 func main() {
-	DB, err := database.InitDatabase()
+	DB, err := database.Init()
 	if err != nil {
 		log.Fatalf("Failed to set up the database: %e", err)
 	} else {
@@ -35,5 +35,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to close DB: %v", err)
 		return
+	} else {
+		log.Info("DB Closed")
 	}
 }
