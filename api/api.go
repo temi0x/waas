@@ -10,10 +10,11 @@ type CreateWalletParams struct {
 }
 
 type SendTokenParams struct {
-	UserAddress   string `json:"user_address"`
-	PIN           string `json:"pin"`
-	TargetAddress string `json:"target_address"`
-	Amount        int    `json:"amount"`
+	UserAddress   string  `json:"user_address"`
+	PIN           string  `json:"pin"`
+	TargetAddress string  `json:"target_address"`
+	Amount        float64 `json:"amount"`
+	ChainID       int     `json:"chain_id"`
 }
 
 type CreateWaasResponse struct {

@@ -35,4 +35,8 @@ func Handler(r *chi.Mux) {
 	r.Route("/wallet/create", func(router chi.Router) {
 		router.Post("/", CreateWallet)
 	})
+
+	r.Route("/wallet/send", func(router chi.Router) {
+		router.Post("/", SendToken)
+	})
 }

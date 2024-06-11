@@ -21,6 +21,7 @@ import (
 var platformPIN = os.Getenv("CrypteaKey")
 
 func deriveKey(userPIN, platformPIN string) []byte {
+	fmt.Println("ensure env works fine ", platformPIN)
 	pinCombo := userPIN + platformPIN
 	hash := sha256.Sum256([]byte(pinCombo))
 	return hash[:]
@@ -109,7 +110,8 @@ func CreateWallet() (string, string) {
 
 	privateKeyBytes := crypto.FromECDSA(privateKey)
 
-	fmt.Println("Private Key: ", hexutil.Encode(privateKeyBytes)[2:]) // removes 0x
+	fmt.Println("Private Key Bytes: ", privateKeyBytes, "done")               // removes 0x
+	fmt.Println("Private Key: ", hexutil.Encode(privateKeyBytes)[2:], "done") // removes 0x
 	pKey := hexutil.Encode(privateKeyBytes)[2:]
 
 	publicKey := privateKey.Public()

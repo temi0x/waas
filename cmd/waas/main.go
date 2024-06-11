@@ -7,10 +7,15 @@ import (
 	"waas/internal/handlers"
 
 	"github.com/go-chi/chi"
+	"github.com/joho/godotenv"
+	_ "github.com/joho/godotenv/autoload"
+
 	log "github.com/sirupsen/logrus"
 )
 
 func main() {
+	godotenv.Load(".env")
+
 	log.SetReportCaller(true)
 	var r *chi.Mux = chi.NewRouter()
 	handlers.Handler(r)
