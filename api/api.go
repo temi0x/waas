@@ -17,6 +17,11 @@ type SendTokenParams struct {
 	ChainID       int     `json:"chain_id"`
 }
 
+type SendTokenResponse struct {
+	Success bool
+	TxHash  string
+}
+
 type CreateWaasResponse struct {
 	Success    bool
 	Address    string

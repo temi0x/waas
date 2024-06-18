@@ -14,6 +14,7 @@ type Config struct {
 	SqlPassword  string
 	SqlUrl       string
 	DbName       string
+	CrypteaKey   string
 	// BotToken           string
 	// UniSatApiKey       string
 	// MagicEdenApiKey    string
@@ -44,6 +45,7 @@ func LoadConfig() (*Config, error) {
 		SqlPassword:  getEnv("SQL_PASSWORD", ""),
 		SqlUrl:       getEnv("SQL_URL", ""),
 		DbName:       getEnv("DB_NAME", ""),
+		CrypteaKey:   getEnv("CRYPTEA_KEY", ""),
 	}
 
 	return &config, nil
