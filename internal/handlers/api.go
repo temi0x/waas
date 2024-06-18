@@ -1,8 +1,9 @@
 package handlers
 
 import (
-	// "waas/internal/middleware"
 	"net/http"
+	"waas/internal/handlers/keymanagement"
+	"waas/internal/middleware"
 
 	"github.com/go-chi/chi"
 	chimiddle "github.com/go-chi/chi/middleware"
@@ -32,11 +33,17 @@ func Handler(r *chi.Mux) {
 	// Global Middleware
 	r.Use(chimiddle.StripSlashes)
 
+	r.Route("/getAPIKey", func(router chi.Router) {
+		router.Get("/", keymanagement.GenerateAPIKey)
+	})
+
 	r.Route("/wallet/create", func(router chi.Router) {
+		router.Use(middleware.ValidateAPIKey)
 		router.Post("/", CreateWallet)
 	})
 
 	r.Route("/wallet/send", func(router chi.Router) {
+		router.Use(middleware.ValidateAPIKey)
 		router.Post("/", SendToken)
 	})
 }

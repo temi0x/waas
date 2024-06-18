@@ -17,15 +17,12 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	etherParams "github.com/ethereum/go-ethereum/params"
-
-	// "github.com/joho/godotenv"
+	"github.com/gorilla/schema"
+	log "github.com/sirupsen/logrus"
 
 	"waas/api"
 	"waas/config"
 	"waas/internal/tools/wallet"
-
-	"github.com/gorilla/schema"
-	log "github.com/sirupsen/logrus"
 )
 
 func CreateWallet(w http.ResponseWriter, r *http.Request) {
