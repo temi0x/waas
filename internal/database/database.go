@@ -68,13 +68,45 @@ func GetWalletDetails(address string) ([]byte, []byte, error) {
 
 func ValidateAPIKey(APIKey string) (bool, error) {
 	var email string
-	row := DB.QueryRow("SELECT email from users WHERE APIKey = ?", APIKey)
+	row := DB.QueryRow("SELECT email from wallezt_api_keys WHERE key = ?", APIKey)
 	err := row.Scan(&email)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return false, nil
 		}
 		return false, err
+	} else {
+		// check if email is in db
+		var emailExists bool
+		err = DB.QueryRow("SELECT EXISTS(SELECT 1 FROM users WHERE email = ?)", email).Scan(&emailExists)
+		if err != nil {
+			log.Error("Error getting user from database", err)
+			return false, err
+		}
 	}
 	return true, nil
 }
+
+func GetFromDb(whatToSelect, uniqueID, tableName string) (string, error) {
+	var userID string
+	err := DB.QueryRow(fmt.Sprintf("SELECT %s FROM %s WHERE walletID = ?", whatToSelect, tableName), uniqueID).Scan(&userID)
+	if err != nil {
+		return "", err
+	}
+	return userID, nil
+}
+
+// func StoreInDb(whatToInsert, uniqueID, tableName string) error {
+// 	stmt, err := DB.Prepare(fmt.Sprintf("INSERT INTO %s (%s) VALUES (?)", tableName, whatToInsert))
+// 	if err != nil {
+// 		return err
+// 	}
+// 	defer stmt.Close()
+
+// 	_, err = stmt.Exec(uniqueID)
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	return nil
+// }

@@ -19,6 +19,7 @@ import (
 	etherParams "github.com/ethereum/go-ethereum/params"
 	"github.com/gorilla/schema"
 	log "github.com/sirupsen/logrus"
+	"golang.org/x/crypto/sha3"
 
 	"waas/api"
 	"waas/config"
@@ -82,6 +83,7 @@ func SendToken(w http.ResponseWriter, r *http.Request) {
 	var decoder *schema.Decoder = schema.NewDecoder()
 	var privateKey []byte
 	var RPC_URL string
+	var RPC_ETHEREUM, RPC_RINKEBY, RPC_ROPSTEN, RPC_SEPOLIA string
 	var err error
 
 	err = decoder.Decode(&params, r.URL.Query())
@@ -98,17 +100,21 @@ func SendToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	platformPIN := cfg.CrypteaKey
+	RPC_ETHEREUM = cfg.RPC_ETHEREUM
+	RPC_RINKEBY = cfg.RPC_RINKEBY
+	RPC_ROPSTEN = cfg.RPC_ROPSTEN
+	RPC_SEPOLIA = cfg.RPC_SEPOLIA
 
 	// set RPC URL based on chain ID
 	switch params.ChainID {
 	case 1:
-		RPC_URL = os.Getenv("RPC_ETHEREUM")
+		RPC_URL = RPC_ETHEREUM
 	case 3:
-		RPC_URL = os.Getenv("RPC_ROPSTEN")
+		RPC_URL = RPC_ROPSTEN
 	case 4:
-		RPC_URL = os.Getenv("RPC_RINKEBY")
+		RPC_URL = RPC_RINKEBY
 	case 11155111:
-		RPC_URL = os.Getenv("RPC_SEPOLIA")
+		RPC_URL = RPC_SEPOLIA
 	default:
 		api.WriteError(w, "Unsupported chain ID", http.StatusBadRequest)
 		return
@@ -237,7 +243,7 @@ func SendToken(w http.ResponseWriter, r *http.Request) {
 
 func SendCustomToken(w http.ResponseWriter, r *http.Request) {
 
-	var params = api.SendTokenParams{}
+	var params = api.SendCustomTokenParams{}
 	var decoder *schema.Decoder = schema.NewDecoder()
 	var privateKey []byte
 	var RPC_URL string
@@ -360,21 +366,40 @@ func SendCustomToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tx := types.NewTransaction(nonce, toAddress, value, gasLimit, gasPrice, nil)
+	// Create and sign the transaction
+	tx := types.NewTransaction(nonce, common.HexToAddress(params.ContractAddress), value, gasLimit, gasPrice, createTransferData(toAddress, amount))
 
-	signedTx, err := types.SignTx(tx, types.NewEIP155Signer(chainID), privKey)
+	signedTx, err := types.SignTx(tx, types.NewEIP155Signer(big.NewInt(int64(params.ChainID))), privKey)
 	if err != nil {
-		log.Error("Error signing transaction", err)
+		http.Error(w, "Error signing transaction", http.StatusInternalServerError)
 		return
 	}
 
 	err = client.SendTransaction(context.Background(), signedTx)
 	if err != nil {
-		log.Error("Error sending transaction", err)
+		http.Error(w, "Error sending transaction", http.StatusInternalServerError)
 		return
 	}
 
 	log.Info("Transaction sent: ", signedTx.Hash().Hex())
+}
+
+func createTransferData(to common.Address, amount *big.Int) []byte {
+	// ABI encoded function signature and parameters for ERC-20 transfer function
+	transferFnSignature := []byte("transfer(address,uint256)")
+	hash := sha3.NewLegacyKeccak256()
+	hash.Write(transferFnSignature)
+	methodID := hash.Sum(nil)[:4]
+
+	paddedAddress := common.LeftPadBytes(to.Bytes(), 32)
+	paddedAmount := common.LeftPadBytes(amount.Bytes(), 32)
+
+	var data []byte
+	data = append(data, methodID...)
+	data = append(data, paddedAddress...)
+	data = append(data, paddedAmount...)
+
+	return data
 }
 
 func convertToWei(amount float64) *big.Int {

@@ -80,28 +80,6 @@ func Decrypt(nonce, ciphertext []byte, userPIN, platformPIN string) (string, err
 	return string(plaintext), nil
 }
 
-// func main() {
-// 	userPIN := "user1234"
-// 	platformPIN := "platform5678"
-// 	message := "Secret Wallet Data"
-
-// 	nonce, ciphertext, err := Encrypt(message, userPIN, platformPIN)
-// 	if err != nil {
-// 		fmt.Println("Error encrypting:", err)
-// 		return
-// 	}
-
-// 	fmt.Printf("Encrypted: %x\n", ciphertext)
-
-// 	plaintext, err := Decrypt(nonce, ciphertext, userPIN, platformPIN)
-// 	if err != nil {
-// 		fmt.Println("Error decrypting:", err)
-// 		return
-// 	}
-
-// 	fmt.Printf("Decrypted: %s\n", plaintext)
-// }
-
 func CreateWallet() (string, string) {
 	privateKey, err := crypto.GenerateKey()
 	if err != nil {
