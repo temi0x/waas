@@ -11,14 +11,11 @@ import (
 	"log"
 
 	// "math/cmplx"
-	"os"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
 	// "github.com/tuneinsight/lattigo/v5/schemes/ckks"
 )
-
-var platformPIN = os.Getenv("CrypteaKey")
 
 func deriveKey(userPIN, platformPIN string) []byte {
 	fmt.Println("ensure env works fine ", platformPIN)

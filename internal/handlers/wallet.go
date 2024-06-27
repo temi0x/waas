@@ -82,8 +82,6 @@ func SendToken(w http.ResponseWriter, r *http.Request) {
 	var params = api.SendTokenParams{}
 	var decoder *schema.Decoder = schema.NewDecoder()
 	var privateKey []byte
-	var RPC_URL string
-	var RPC_ETHEREUM, RPC_RINKEBY, RPC_ROPSTEN, RPC_SEPOLIA string
 	var err error
 
 	err = decoder.Decode(&params, r.URL.Query())
@@ -100,25 +98,8 @@ func SendToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	platformPIN := cfg.CrypteaKey
-	RPC_ETHEREUM = cfg.RPC_ETHEREUM
-	RPC_RINKEBY = cfg.RPC_RINKEBY
-	RPC_ROPSTEN = cfg.RPC_ROPSTEN
-	RPC_SEPOLIA = cfg.RPC_SEPOLIA
 
-	// set RPC URL based on chain ID
-	switch params.ChainID {
-	case 1:
-		RPC_URL = RPC_ETHEREUM
-	case 3:
-		RPC_URL = RPC_ROPSTEN
-	case 4:
-		RPC_URL = RPC_RINKEBY
-	case 11155111:
-		RPC_URL = RPC_SEPOLIA
-	default:
-		api.WriteError(w, "Unsupported chain ID", http.StatusBadRequest)
-		return
-	}
+	RPC_URL := wallet.GetRPC(params.ChainID)
 
 	log.Info("RPC_URL: ", RPC_URL)
 
@@ -239,6 +220,39 @@ func SendToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+}
+
+// SendToken handles the HTTP request to transfer a token.
+func SendTokens(w http.ResponseWriter, r *http.Request) {
+	// Decode the request
+	var request api.SendCustomTokenParams
+	if err := schema.NewDecoder().Decode(&request, r.URL.Query()); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Perform the token transfer
+	txHash, err := wallet.SendTokens(&request) // Adjusted to pass a pointer and handle both return values
+	if err != nil {
+		log.Printf("Failed to send token: %v", err)
+		http.Error(w, "Failed to send token", http.StatusInternalServerError)
+		return
+	}
+
+	// Create a new response
+	var response = api.SendTokenResponse{
+		Success: true,
+		TxHash:  txHash,
+	}
+
+	// Set the header to application/json
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(response)
+	if err != nil {
+		log.Error(err)
+		api.InternalErrorHandler(w, err)
+		return
+	}
 }
 
 func SendCustomToken(w http.ResponseWriter, r *http.Request) {

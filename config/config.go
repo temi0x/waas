@@ -8,34 +8,46 @@ import (
 )
 
 type Config struct {
-	RPC_ETHEREUM  string
-	RPC_OPTIMISM  string
-	RPC_POLYGON   string
+	RPC_ETHEREUM      string
+	RPC_POLYGON       string
+	RPC_ARBITRUM      string
+	RPC_OPTIMISM      string
+	RPC_POLYGON_ZKEVM string
+	RPC_BASE          string
+	RPC_ASTAR         string
+	RPC_ZKSYNC        string
+	RPC_ZORA          string
+	RPC_FRAX          string
+	RPC_ZETACHAIN     string
+	RPC_BLAST         string
+
 	RPC_BSC       string
 	RPC_FANTOM    string
 	RPC_XDAI      string
-	RPC_ARBITRUM  string
 	RPC_MOONBEAM  string
 	RPC_AVALANCHE string
 
 	RPC_SOLANA string
 	RPC_COSMOS string
 
-	RPC_SEPOLIA string
-	RPC_RINKEBY string
-	RPC_ROPSTEN string
+	RPC_SEPOLIA           string
+	RPC_HOLESKY           string
+	RPC_POLYGON_AMOY      string
+	RPC_ARB_SEPOLIA       string
+	RPC_OP_SEPOLIA        string
+	RPC_POLYGONZK_CARDONA string
+	RPC_BASE_SEPOLIA      string
+	RPC_ZKSYNC_SEPOLIA    string
+	RPC_ZORA_SEPOLIA      string
+	RPC_FRAX_SEPOLIA      string
+	RPC_ZETACHAIN_SEPOLIA string
+	RPC_BLAST_SEPOLIA     string
+
 	SqlUsername string
 	SqlPassword string
 	SqlUrl      string
 	DbName      string
 	CrypteaKey  string
-	// BotToken           string
-	// UniSatApiKey       string
-	// MagicEdenApiKey    string
-	// OrdinalNovusApiKey string
-	// OKXSecretkey       string
-	// OKXAPIKey          string
-	// OKXPassPhrase      string
 }
 
 // LoadConfig reads configuration from .env file and environment variables.
@@ -46,25 +58,37 @@ func LoadConfig() (*Config, error) {
 	}
 
 	config := Config{
-		// BotToken:           getEnv("BOT_TOKEN", ""),
-		// UniSatApiKey:       getEnv("UNISAT_API_KEY", ""),
-		// MagicEdenApiKey:    getEnv("MAGIC_EDEN_API_KEY", ""),
-		// OrdinalNovusApiKey: getEnv("ORDINAL_NOVUS_API_KEY", ""),
-		// OKXSecretkey:       getEnv("OKX_SECRET_KEY", ""),
-		// OKXAPIKey:          getEnv("OKX_API_KEY", ""),
-		// OKXPassPhrase:      getEnv("OKX_PASSPHRASE", ""),
-		RPC_ETHEREUM:  getEnv("RPC_ETHEREUM", ""),
-		RPC_SEPOLIA:   getEnv("RPC_SEPOLIA", ""),
-		RPC_RINKEBY:   getEnv("RPC_RINKEBY", ""),
-		RPC_ROPSTEN:   getEnv("RPC_ROPSTEN", ""),
-		RPC_OPTIMISM:  getEnv("RPC_OPTIMISM", ""),
-		RPC_POLYGON:   getEnv("RPC_POLYGON", ""),
+		RPC_ETHEREUM:      getEnv("RPC_ETHEREUM", ""),
+		RPC_POLYGON:       getEnv("RPC_POLYGON", ""),
+		RPC_ARBITRUM:      getEnv("RPC_ARBITRUM", ""),
+		RPC_OPTIMISM:      getEnv("RPC_OPTIMISM", ""),
+		RPC_POLYGON_ZKEVM: getEnv("RPC_POLYGON_ZKEVM", ""),
+		RPC_BASE:          getEnv("RPC_BASE", ""),
+		RPC_ASTAR:         getEnv("RPC_ASTAR", ""),
+		RPC_ZKSYNC:        getEnv("RPC_ZKSYNC", ""),
+		RPC_ZORA:          getEnv("RPC_ZORA", ""),
+		RPC_FRAX:          getEnv("RPC_FRAX", ""),
+		RPC_ZETACHAIN:     getEnv("RPC_ZETACHAIN", ""),
+		RPC_BLAST:         getEnv("RPC_BLAST", ""),
+
 		RPC_BSC:       getEnv("RPC_BSC", ""),
 		RPC_FANTOM:    getEnv("RPC_FANTOM", ""),
 		RPC_XDAI:      getEnv("RPC_XDAI", ""),
-		RPC_ARBITRUM:  getEnv("RPC_ARBITRUM", ""),
 		RPC_MOONBEAM:  getEnv("RPC_MOONBEAM", ""),
 		RPC_AVALANCHE: getEnv("RPC_AVALANCHE", ""),
+
+		RPC_SEPOLIA:           getEnv("RPC_SEPOLIA", ""),
+		RPC_HOLESKY:           getEnv("RPC_HOLESKY", ""),
+		RPC_POLYGON_AMOY:      getEnv("RPC_POLYGON_AMOY", ""),
+		RPC_ARB_SEPOLIA:       getEnv("RPC_ARB_SEPOLIA", ""),
+		RPC_OP_SEPOLIA:        getEnv("RPC_OP_SEPOLIA", ""),
+		RPC_POLYGONZK_CARDONA: getEnv("RPC_POLYGONZK_CARDONA", ""),
+		RPC_BASE_SEPOLIA:      getEnv("RPC_BASE_SEPOLIA", ""),
+		RPC_ZKSYNC_SEPOLIA:    getEnv("RPC_ZKSYNC_SEPOLIA", ""),
+		RPC_ZORA_SEPOLIA:      getEnv("RPC_ZORA_SEPOLIA", ""),
+		RPC_FRAX_SEPOLIA:      getEnv("RPC_FRAX_SEPOLIA", ""),
+		RPC_ZETACHAIN_SEPOLIA: getEnv("RPC_ZETACHAIN_SEPOLIA", ""),
+		RPC_BLAST_SEPOLIA:     getEnv("RPC_BLAST_SEPOLIA", ""),
 
 		RPC_SOLANA: getEnv("RPC_SOLANA", ""),
 		RPC_COSMOS: getEnv("RPC_COSMOS", ""),
