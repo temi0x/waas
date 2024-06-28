@@ -6,10 +6,8 @@ import (
 	"strings"
 
 	// "crypto/ecdsa"
-	"encoding/json"
 	"fmt"
 	"math/big"
-	"net/http"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -18,7 +16,6 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/gorilla/schema"
 	log "github.com/sirupsen/logrus"
 
 	"waas/api"
@@ -26,149 +23,88 @@ import (
 	"waas/internal/database"
 )
 
-func SendToken(w http.ResponseWriter, r *http.Request) {
-
-	var params = api.SendTokenParams{}
-	var decoder *schema.Decoder = schema.NewDecoder()
+func SendToken(request *api.SendTokenParams) (txhash string, err error) {
 	var privateKey []byte
 	var RPC_URL string
-	var err error
-
-	err = decoder.Decode(&params, r.URL.Query())
-	if err != nil {
-		api.InternalErrorHandler(w, err)
-		log.Error("Error decoding request params", err)
-		return
-	}
 
 	cfg, err := config.LoadConfig()
 	if err != nil {
-		log.Error("failed to load configuration: " + err.Error())
-		api.InternalErrorHandler(w, err)
-		return
+		return "", fmt.Errorf("failed to load configuration: %v", err)
 	}
 	platformPIN := cfg.CrypteaKey
-	RPC_URL = GetRPC(params.ChainID)
-
-	log.Info("RPC_URL: ", RPC_URL)
+	RPC_URL = GetRPC(request.ChainID)
 
 	if RPC_URL == "" {
-		api.WriteError(w, "RPC URL is not set", http.StatusInternalServerError)
-		return
+		return "", fmt.Errorf("unsupported chain ID: %d", request.ChainID)
 	}
 
-	// check if targetaddress is EVM-compatible
-	if !common.IsHexAddress(params.TargetAddress) {
-		api.WriteError(w, "Invalid target address", http.StatusBadRequest)
-		return
+	if !common.IsHexAddress(request.TargetAddress) {
+		return "", fmt.Errorf("invalid target address")
 	}
 
-	// get nonce & ciphertext from database
-	eNonce, ciphertext, err := database.GetWalletDetails(params.UserAddress)
+	eNonce, ciphertext, err := database.GetWalletDetails(request.UserAddress)
 	if err != nil {
-		api.InternalErrorHandler(w, err)
-		log.Error("Error getting wallet details", err)
-		return
+		return "", fmt.Errorf("error getting wallet details: %v", err)
 	}
 
-	// Decrypt the wallet
-	derivedKey, err := Decrypt(eNonce, ciphertext, params.PIN, platformPIN)
-	log.Info("derivedKey: ", derivedKey)
+	derivedKey, err := Decrypt(eNonce, ciphertext, request.PIN, platformPIN)
 	if err != nil {
-		api.InternalErrorHandler(w, err)
-		log.Error("Error decrypting user wallet", err)
-		return
+		return "", fmt.Errorf("error decrypting user wallet: %v", err)
 	}
 	derivedKeyWithPrefix := fmt.Sprintf("0x%s", derivedKey)
 
-	// privateKeyBytes := []byte(derivedKey)
-
 	privateKey, err = hexutil.Decode(derivedKeyWithPrefix)
 	if err != nil {
-		log.Error("Error decoding private key", err)
-		return
+		return "", fmt.Errorf("error decoding private key: %v", err)
 	}
-	log.Info("private key: ", privateKey)
 
-	privKey, err := crypto.ToECDSA([]byte(privateKey))
-	log.Info("private key ecdsa: ", privKey)
+	privKey, err := crypto.ToECDSA(privateKey)
 	if err != nil {
-		log.Error("Error converting to ECDSA private key", err)
-		return
+		return "", fmt.Errorf("error converting to ECDSA private key: %v", err)
 	}
 
-	// Connect to the Ethereum client
 	client, err := ethclient.Dial(RPC_URL)
 	if err != nil {
-		log.Error("Error connecting to Ethereum client ", err)
-		return
+		return "", fmt.Errorf("error connecting to Ethereum client: %v", err)
 	}
 
-	// Create a new authenticated session
-	chainID := big.NewInt(int64(params.ChainID)) // 1 is the chain ID for Ethereum mainnet
+	chainID := big.NewInt(int64(request.ChainID))
 	auth, err := bind.NewKeyedTransactorWithChainID(privKey, chainID)
 	if err != nil {
-		log.Error("Error creating transactor", err)
-		return
+		return "", fmt.Errorf("error creating transactor: %v", err)
 	}
 
 	nonce, err := client.PendingNonceAt(context.Background(), auth.From)
 	if err != nil {
-		log.Error("Error getting nonce", err)
-		return
+		return "", fmt.Errorf("error getting nonce: %v", err)
 	}
 
 	gasPrice, err := client.SuggestGasPrice(context.Background())
 	if err != nil {
-		log.Error("Error getting gas price", err)
-		return
+		return "", fmt.Errorf("error getting gas price: %v", err)
 	}
 
-	amount := ConvertToWei(params.Amount)
-
+	amount := ConvertToWei(request.Amount)
 	value := new(big.Int).Set(amount)
-
 	gasLimit := uint64(21000) // in units
 
-	toAddress := common.HexToAddress(params.TargetAddress)
+	toAddress := common.HexToAddress(request.TargetAddress)
 	if toAddress == (common.Address{}) {
-		log.Error("Invalid target address")
-		return
+		return "", fmt.Errorf("invalid target address")
 	}
 
 	tx := types.NewTransaction(nonce, toAddress, value, gasLimit, gasPrice, nil)
-
 	signedTx, err := types.SignTx(tx, types.NewEIP155Signer(chainID), privKey)
 	if err != nil {
-		log.Error("Error signing transaction", err)
-		return
+		return "", fmt.Errorf("error signing transaction: %v", err)
 	}
 
 	err = client.SendTransaction(context.Background(), signedTx)
 	if err != nil {
-		log.Error("Error sending transaction", err)
-		return
+		return "", fmt.Errorf("error sending transaction: %v", err)
 	}
 
-	log.Info("Transaction sent: ", signedTx.Hash().Hex())
-
-	txHash := signedTx.Hash().Hex()
-
-	// Create a new response
-	var response = api.SendTokenResponse{
-		Success: true,
-		TxHash:  txHash,
-	}
-
-	// Set the header to application/json
-	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(response)
-	if err != nil {
-		log.Error(err)
-		api.InternalErrorHandler(w, err)
-		return
-	}
-
+	return signedTx.Hash().Hex(), nil
 }
 
 const erc20ABI = `[{"constant":false,"inputs":[{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],"name":"transfer","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"}]`
