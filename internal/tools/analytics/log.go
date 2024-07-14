@@ -9,7 +9,7 @@ import (
 )
 
 type TransactionLog struct {
-	TransactionID string
+	TxnID         string
 	WalletAddress string
 	TargetAddress string
 	TokenType     string
@@ -30,7 +30,7 @@ func LogEvent(event string, data string) error {
 }
 
 func StoreTransaction(txn TransactionLog) error {
-	err := database.StoreTxnInDb(txn.WalletAddress, txn.TransactionID, txn.TargetAddress, txn.TokenType, txn.Amount, txn.Status, txn.ErrorMessage)
+	err := database.StoreTxnInDb(txn.WalletAddress, txn.TxnID, txn.TargetAddress, txn.TokenType, txn.Amount, txn.Status, txn.ErrorMessage)
 	if err != nil {
 		log.Printf("Error storing transaction: %v", err)
 		return fmt.Errorf("error storing transaction: %v", err)

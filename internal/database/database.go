@@ -112,7 +112,7 @@ func GetFromDb(whatToSelect, uniqueID, tableName string) (string, error) {
 // }
 
 func StoreTxnInDb(walletID, txnID, targetAddress, tokenType, amount, status, errorMessage string) error {
-	stmt, err := DB.Prepare("INSERT INTO transactions (walletID, txnID, targetAddress, tokenType, amount, status, errorMessage) VALUES (?, ?, ?, ?, ?, ?, ?)")
+	stmt, err := DB.Prepare("INSERT INTO wallet_transactions (walletID, txHash, targetAddress, tokenType, amount_usd, status, errorMessage) VALUES (?, ?, ?, ?, ?, ?, ?)")
 	if err != nil {
 		return err
 	}

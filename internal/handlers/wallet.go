@@ -104,6 +104,7 @@ func SendToken(w http.ResponseWriter, r *http.Request) {
 		analytics.StoreTransaction(analytics.TransactionLog{
 			WalletAddress: request.UserAddress,
 			TargetAddress: request.TargetAddress,
+			TxnID:         txHash,
 			TokenType:     "ERC20",
 			Amount:        fmt.Sprintf("%f", request.Amount),
 			Status:        "success",
@@ -156,7 +157,7 @@ func SendTokens(w http.ResponseWriter, r *http.Request) {
 		response.TxHash = txHash
 
 		log.Printf("Failed to send token: %v", err)
-		http.Error(w, "Failed to send token", http.StatusInternalServerError)
+		// http.Error(w, "Failed to send token", http.StatusInternalServerError)
 		return
 	} else {
 		recordMetrics("success", time.Since(start).Seconds())
@@ -180,6 +181,11 @@ func SendTokens(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Error(err)
 		api.InternalErrorHandler(w, err)
+		return
+	}
+
+	if !response.Success {
+		http.Error(w, "Failed to send token", http.StatusInternalServerError)
 		return
 	}
 }

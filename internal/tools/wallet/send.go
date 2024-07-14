@@ -32,10 +32,13 @@ func SendToken(request *api.SendTokenParams) (txhash string, err error) {
 		return "", fmt.Errorf("failed to load configuration: %v", err)
 	}
 	platformPIN := cfg.CrypteaKey
-	RPC_URL = GetRPC(request.ChainID)
+
+	ChainID := GetChainID(request.Chain)
+
+	RPC_URL = GetRPC(ChainID)
 
 	if RPC_URL == "" {
-		return "", fmt.Errorf("unsupported chain ID: %d", request.ChainID)
+		return "", fmt.Errorf("unsupported chain: %v", request.Chain)
 	}
 
 	if !common.IsHexAddress(request.TargetAddress) {
@@ -68,7 +71,7 @@ func SendToken(request *api.SendTokenParams) (txhash string, err error) {
 		return "", fmt.Errorf("error connecting to Ethereum client: %v", err)
 	}
 
-	chainID := big.NewInt(int64(request.ChainID))
+	chainID := big.NewInt(int64(ChainID))
 	auth, err := bind.NewKeyedTransactorWithChainID(privKey, chainID)
 	if err != nil {
 		return "", fmt.Errorf("error creating transactor: %v", err)
@@ -104,17 +107,20 @@ func SendToken(request *api.SendTokenParams) (txhash string, err error) {
 		return "", fmt.Errorf("error sending transaction: %v", err)
 	}
 
-	return signedTx.Hash().Hex(), nil
+	txHash := GetBlockExplorerURL(ChainID, signedTx.Hash().Hex())
+
+	return txHash, nil
 }
 
 const erc20ABI = `[{"constant":false,"inputs":[{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],"name":"transfer","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"}]`
 
 // SendTokens performs the custom token transfer based on the provided request details
 func SendTokens(request *api.SendCustomTokenParams) (txhash string, err error) {
-	// Determine the RPC URL based on the Chain ID
-	rpcURL := GetRPC(request.ChainID)
+	ChainID := GetChainID(request.Chain)
+
+	rpcURL := GetRPC(ChainID)
 	if rpcURL == "" {
-		return "", fmt.Errorf("unsupported chain ID: %d", request.ChainID)
+		return "", fmt.Errorf("unsupported chain ID: %v", request.Chain)
 	}
 
 	// Connect to the Ethereum client
@@ -123,7 +129,7 @@ func SendTokens(request *api.SendCustomTokenParams) (txhash string, err error) {
 		return "", fmt.Errorf("failed to connect to the Ethereum client: %w", err)
 	}
 
-	chainID := big.NewInt(int64(request.ChainID)) // Chain ID for Ethereum mainnet
+	chainID := big.NewInt(int64(ChainID)) // Chain ID for Ethereum mainnet
 
 	// Decrypt the private key
 	eNonce, ciphertext, err := database.GetWalletDetails(request.UserAddress)
@@ -186,6 +192,6 @@ func SendTokens(request *api.SendCustomTokenParams) (txhash string, err error) {
 	}
 
 	log.Printf("Token sent: %s", tx.Hash().Hex())
-	txHash := tx.Hash().Hex()
+	txHash := GetBlockExplorerURL(ChainID, tx.Hash().Hex())
 	return txHash, nil
 }
