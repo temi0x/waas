@@ -68,7 +68,7 @@ func GetWalletDetails(address string) ([]byte, []byte, error) {
 
 func ValidateAPIKey(APIKey string) (bool, error) {
 	var email string
-	row := DB.QueryRow("SELECT email from wallezt_api_keys WHERE key = ?", APIKey)
+	row := DB.QueryRow("SELECT email from wallet_api_keys WHERE key = ?", APIKey)
 	err := row.Scan(&email)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -110,3 +110,27 @@ func GetFromDb(whatToSelect, uniqueID, tableName string) (string, error) {
 
 // 	return nil
 // }
+
+func StoreTxnInDb(walletID, txnID, targetAddress, tokenType, amount, status, errorMessage, timestamp string) error {
+	stmt, err := DB.Prepare("INSERT INTO wallet_transactions (walletID, txHash, targetAddress, tokenType, amount_usd, status, errorMessage, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(walletID, txnID, targetAddress, tokenType, amount, status, errorMessage, timestamp)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func LogEvent(event, data string) error {
+	_, err := DB.Exec("INSERT INTO events (event, data) VALUES (?, ?)", event, data)
+	if err != nil {
+		log.Printf("Error logging event: %v", err)
+		return err
+	}
+	return nil
+}
