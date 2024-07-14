@@ -90,7 +90,7 @@ func SendToken(w http.ResponseWriter, r *http.Request) {
 			Amount:        fmt.Sprintf("%f", request.Amount),
 			Status:        "failed",
 			ErrorMessage:  fmt.Sprintf("Failed to send token: %v", err),
-			Timestamp:     time.Now(),
+			Timestamp:     time.Now().Format("2006-01-02 15:04:05"),
 		})
 		response.Success = false
 		response.TxHash = txHash
@@ -109,7 +109,7 @@ func SendToken(w http.ResponseWriter, r *http.Request) {
 			Amount:        fmt.Sprintf("%f", request.Amount),
 			Status:        "success",
 			ErrorMessage:  "",
-			Timestamp:     time.Now(),
+			Timestamp:     time.Now().Format("2006-01-02 15:04:05"),
 		})
 		response.Success = true
 		response.TxHash = txHash
@@ -151,7 +151,7 @@ func SendTokens(w http.ResponseWriter, r *http.Request) {
 			Amount:        fmt.Sprintf("%f", request.Amount),
 			Status:        "failed",
 			ErrorMessage:  fmt.Sprintf("Failed to send token: %v", err),
-			Timestamp:     time.Now(),
+			Timestamp:     time.Now().Format("2006-01-02 15:04:05"),
 		})
 		response.Success = false
 		response.TxHash = txHash
@@ -169,7 +169,7 @@ func SendTokens(w http.ResponseWriter, r *http.Request) {
 			Amount:        fmt.Sprintf("%f", request.Amount),
 			Status:        "success",
 			ErrorMessage:  "",
-			Timestamp:     time.Now(),
+			Timestamp:     time.Now().Format("2006-01-02 15:04:05"),
 		})
 		response.Success = true
 		response.TxHash = txHash

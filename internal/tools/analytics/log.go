@@ -3,7 +3,6 @@ package analytics
 import (
 	"fmt"
 	"log"
-	"time"
 
 	"waas/internal/database"
 )
@@ -16,7 +15,7 @@ type TransactionLog struct {
 	Amount        string
 	Status        string
 	ErrorMessage  string
-	Timestamp     time.Time
+	Timestamp     string
 }
 
 // LogEvent logs an event to the database
@@ -30,7 +29,7 @@ func LogEvent(event string, data string) error {
 }
 
 func StoreTransaction(txn TransactionLog) error {
-	err := database.StoreTxnInDb(txn.WalletAddress, txn.TxnID, txn.TargetAddress, txn.TokenType, txn.Amount, txn.Status, txn.ErrorMessage)
+	err := database.StoreTxnInDb(txn.WalletAddress, txn.TxnID, txn.TargetAddress, txn.TokenType, txn.Amount, txn.Status, txn.ErrorMessage, txn.Timestamp)
 	if err != nil {
 		log.Printf("Error storing transaction: %v", err)
 		return fmt.Errorf("error storing transaction: %v", err)
