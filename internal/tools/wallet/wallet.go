@@ -18,7 +18,7 @@ import (
 )
 
 func deriveKey(userPIN, platformPIN string) []byte {
-	fmt.Println("ensure env works fine ", platformPIN)
+	// fmt.Println("ensure env works fine ", platformPIN)
 	pinCombo := userPIN + platformPIN
 	hash := sha256.Sum256([]byte(pinCombo))
 	return hash[:]

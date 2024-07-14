@@ -110,3 +110,27 @@ func GetFromDb(whatToSelect, uniqueID, tableName string) (string, error) {
 
 // 	return nil
 // }
+
+func StoreTxnInDb(walletID, txnID, targetAddress, tokenType, amount, status, errorMessage string) error {
+	stmt, err := DB.Prepare("INSERT INTO transactions (walletID, txnID, targetAddress, tokenType, amount, status, errorMessage) VALUES (?, ?, ?, ?, ?, ?, ?)")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(walletID, txnID, targetAddress, tokenType, amount, status, errorMessage)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func LogEvent(event, data string) error {
+	_, err := DB.Exec("INSERT INTO events (event, data) VALUES (?, ?)", event, data)
+	if err != nil {
+		log.Printf("Error logging event: %v", err)
+		return err
+	}
+	return nil
+}

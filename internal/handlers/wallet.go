@@ -4,13 +4,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	database "waas/internal/database"
+	"time"
 
 	"github.com/gorilla/schema"
 	log "github.com/sirupsen/logrus"
 
 	"waas/api"
 	"waas/config"
+	database "waas/internal/database"
+	"waas/internal/tools/analytics"
 	"waas/internal/tools/wallet"
 )
 
@@ -72,13 +74,44 @@ func SendToken(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	start := time.Now()
+
+	var response api.SendTokenResponse
 
 	txHash, err := wallet.SendToken(&request)
 
-	// Create a new response
-	var response = api.SendTokenResponse{
-		Success: true,
-		TxHash:  txHash,
+	if err != nil {
+		recordMetrics("failed", time.Since(start).Seconds())
+
+		analytics.StoreTransaction(analytics.TransactionLog{
+			WalletAddress: request.UserAddress,
+			TargetAddress: request.TargetAddress,
+			TokenType:     "ERC20",
+			Amount:        fmt.Sprintf("%f", request.Amount),
+			Status:        "failed",
+			ErrorMessage:  fmt.Sprintf("Failed to send token: %v", err),
+			Timestamp:     time.Now(),
+		})
+		response.Success = false
+		response.TxHash = txHash
+
+		log.Printf("Failed to send token: %v", err)
+		http.Error(w, "Failed to send token", http.StatusInternalServerError)
+		return
+	} else {
+		recordMetrics("success", time.Since(start).Seconds())
+
+		analytics.StoreTransaction(analytics.TransactionLog{
+			WalletAddress: request.UserAddress,
+			TargetAddress: request.TargetAddress,
+			TokenType:     "ERC20",
+			Amount:        fmt.Sprintf("%f", request.Amount),
+			Status:        "success",
+			ErrorMessage:  "",
+			Timestamp:     time.Now(),
+		})
+		response.Success = true
+		response.TxHash = txHash
 	}
 
 	// Set the header to application/json
@@ -101,18 +134,44 @@ func SendTokens(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	start := time.Now()
+
+	var response api.SendTokenResponse
+
 	// Perform the token transfer
 	txHash, err := wallet.SendTokens(&request) // Adjusted to pass a pointer and handle both return values
 	if err != nil {
+		recordMetrics("failed", time.Since(start).Seconds())
+
+		analytics.StoreTransaction(analytics.TransactionLog{
+			WalletAddress: request.UserAddress,
+			TargetAddress: request.TargetAddress,
+			TokenType:     "ERC20",
+			Amount:        fmt.Sprintf("%f", request.Amount),
+			Status:        "failed",
+			ErrorMessage:  fmt.Sprintf("Failed to send token: %v", err),
+			Timestamp:     time.Now(),
+		})
+		response.Success = false
+		response.TxHash = txHash
+
 		log.Printf("Failed to send token: %v", err)
 		http.Error(w, "Failed to send token", http.StatusInternalServerError)
 		return
-	}
+	} else {
+		recordMetrics("success", time.Since(start).Seconds())
 
-	// Create a new response
-	var response = api.SendTokenResponse{
-		Success: true,
-		TxHash:  txHash,
+		analytics.StoreTransaction(analytics.TransactionLog{
+			WalletAddress: request.UserAddress,
+			TargetAddress: request.TargetAddress,
+			TokenType:     "ERC20",
+			Amount:        fmt.Sprintf("%f", request.Amount),
+			Status:        "success",
+			ErrorMessage:  "",
+			Timestamp:     time.Now(),
+		})
+		response.Success = true
+		response.TxHash = txHash
 	}
 
 	// Set the header to application/json
@@ -123,4 +182,9 @@ func SendTokens(w http.ResponseWriter, r *http.Request) {
 		api.InternalErrorHandler(w, err)
 		return
 	}
+}
+
+func recordMetrics(status string, duration float64) {
+	totalTransactions.WithLabelValues(status).Inc()
+	transactionDuration.WithLabelValues(status).Observe(duration)
 }

@@ -7,7 +7,34 @@ import (
 
 	"github.com/go-chi/chi"
 	chimiddle "github.com/go-chi/chi/middleware"
+
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
+
+var (
+	totalTransactions = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "waas_total_transactions",
+			Help: "Total number of transactions processed",
+		},
+		[]string{"status"},
+	)
+	transactionDuration = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Name:    "waas_transaction_duration_seconds",
+			Help:    "Duration of transactions",
+			Buckets: prometheus.DefBuckets,
+		},
+		[]string{"status"},
+	)
+)
+
+func init() {
+	// Register metrics with Prometheus
+	prometheus.MustRegister(totalTransactions)
+	prometheus.MustRegister(transactionDuration)
+}
 
 func enableCORS(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -32,6 +59,9 @@ func Handler(r *chi.Mux) {
 	r.Use(enableCORS)
 	// Global Middleware
 	r.Use(chimiddle.StripSlashes)
+
+	// Prometheus metrics
+	r.Handle("/metrics", promhttp.Handler())
 
 	// r.Route("/getAPIKey", func(router chi.Router) {
 	// 	router.Get("/", keymanagement.GenerateAPIKey)
