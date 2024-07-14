@@ -68,7 +68,7 @@ func GetWalletDetails(address string) ([]byte, []byte, error) {
 
 func ValidateAPIKey(APIKey string) (bool, error) {
 	var email string
-	row := DB.QueryRow("SELECT email from wallezt_api_keys WHERE key = ?", APIKey)
+	row := DB.QueryRow("SELECT email from wallet_api_keys WHERE key = ?", APIKey)
 	err := row.Scan(&email)
 	if err != nil {
 		if err == sql.ErrNoRows {
