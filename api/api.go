@@ -19,12 +19,12 @@ type SendTokenParams struct {
 }
 
 type SendCustomTokenParams struct {
-	UserAddress     string  `json:"user_address"`     // user's wallet address
-	TargetAddress   string  `json:"target_address"`   // Target address for the custom token
-	ContractAddress string  `json:"contract_address"` // Contract address for the custom token
-	Amount          float64 `json:"amount"`           // Amount of custom token to send
-	PIN             string  `json:"pin"`              // user's pin, usually 6 digits
-	Chain           string  `json:"chain"`            // chain ID for request (1, for Ethereum), (3, for Ropsten), etc
+	UserAddress   string  `json:"user_address"`   // user's wallet address
+	TargetAddress string  `json:"target_address"` // Target address for the custom token
+	TokenName     string  `json:"token_name"`     // Contract address for the custom token
+	Amount        float64 `json:"amount"`         // Amount of custom token to send
+	PIN           string  `json:"pin"`            // user's pin, usually 6 digits
+	Chain         string  `json:"chain"`          // chain ID for request (1, for Ethereum), (3, for Ropsten), etc
 }
 
 type SendTokenResponse struct {

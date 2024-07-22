@@ -89,3 +89,40 @@ func GetBlockExplorerURL(chainID int, txHash string) string {
 		return "https://basescan.org/tx/" + txHash
 	}
 }
+
+func GetDecimalPlaces(token string) int {
+	switch token {
+	case "ETH":
+		return 18
+	case "BSC":
+		return 18
+	case "MATIC":
+		return 18
+	case "FANTOM":
+		return 18
+	case "XDAI":
+		return 18
+	case "AVALANCHE":
+		return 18
+	case "ARBITRUM":
+		return 18
+	case "OPTIMISM":
+		return 18
+	case "CELO":
+		return 18
+	case "MOONBEAM":
+		return 18
+	case "HARMONY":
+		return 18
+	case "BASE":
+		return 18
+	case "USDT":
+		return 6
+	case "USDC":
+		return 6
+	case "DAI":
+		return 18
+	default:
+		return 18
+	}
+}

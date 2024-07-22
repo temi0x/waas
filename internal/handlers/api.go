@@ -3,7 +3,7 @@ package handlers
 import (
 	"net/http"
 	// "waas/internal/handlers/keymanagement"
-	// "waas/internal/middleware"
+	"waas/internal/middleware"
 
 	"github.com/go-chi/chi"
 	chimiddle "github.com/go-chi/chi/middleware"
@@ -28,12 +28,20 @@ var (
 		},
 		[]string{"status"},
 	)
+	walletCreation = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Name: "waas_wallet_creation",
+			Help: "Total number of wallet creation requests",
+		},
+		[]string{"status", "walletAddress", "business"}, // Add the new fields here
+	)
 )
 
 func init() {
 	// Register metrics with Prometheus
 	prometheus.MustRegister(totalTransactions)
 	prometheus.MustRegister(transactionDuration)
+	prometheus.MustRegister(walletCreation)
 }
 
 func enableCORS(next http.Handler) http.Handler {
@@ -68,17 +76,17 @@ func Handler(r *chi.Mux) {
 	// })
 
 	r.Route("/wallet/create", func(router chi.Router) {
-		// router.Use(middleware.ValidateAPIKey)
+		router.Use(middleware.ValidateAPIKey)
 		router.Post("/", CreateWallet)
 	})
 
 	r.Route("/wallet/send", func(router chi.Router) {
-		// router.Use(middleware.ValidateAPIKey)
+		router.Use(middleware.ValidateAPIKey)
 		router.Post("/", SendToken)
 	})
 
-	r.Route("/wallet/sendtoken", func(router chi.Router) {
-		// router.Use(middleware.ValidateAPIKey)
-		router.Post("/", SendTokens)
-	})
+	// r.Route("/wallet/sendtoken", func(router chi.Router) {
+	// 	router.Use(middleware.ValidateAPIKey)
+	// 	router.Post("/", SendTokens)
+	// })
 }

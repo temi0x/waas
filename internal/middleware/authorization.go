@@ -4,6 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
+	"strings"
+	"unicode"
 
 	"waas/api"
 	"waas/internal/database"
@@ -12,6 +15,7 @@ import (
 	// "net/http"
 	// "github.com/go-chi/chi"
 	log "github.com/sirupsen/logrus"
+	"golang.org/x/crypto/bcrypt"
 )
 
 var ErrUnauthorized = errors.New("invalid username or token")
@@ -27,13 +31,50 @@ func ValidateAPIKey(next http.Handler) http.Handler {
 		}
 		fmt.Println(apiKey)
 
-		// Validate API Key
-		isValid, _ := database.ValidateAPIKey(apiKey)
-		if !isValid {
-			log.Error("Invalid API Keyy")
-			api.WriteError(w, "No token provided", http.StatusUnauthorized)
+		// sample api key = CWA-1Ro-ZXSGT5-WlnidH-is5ApkCbi
+
+		// Deconstruct API Key
+		keyParts := strings.Split(apiKey, "-")
+		if len(keyParts) < 2 {
+			log.Error("Invalid API Key format")
+			api.WriteError(w, "Invalid API Key format", http.StatusUnauthorized)
 			return
 		}
+
+		secondGroup := keyParts[1]
+		digitsOnly := ""
+		for _, char := range secondGroup {
+			if unicode.IsDigit(char) {
+				digitsOnly += string(char)
+			}
+		}
+		fmt.Println(digitsOnly)
+
+		digitsOnlyInt, err := strconv.Atoi(digitsOnly)
+		if err != nil {
+			log.Error("Failed to convert digits to int", err)
+			api.WriteError(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+
+		hashFromDb, err := database.GetKeyHash(digitsOnlyInt)
+		if err != nil {
+			log.Error("Failed to get hash from db", err)
+			api.WriteError(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+
+		err = bcrypt.CompareHashAndPassword([]byte(hashFromDb), []byte(apiKey))
+		if err != nil {
+			if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
+				log.Error("API Key mismatch", err)
+				api.WriteError(w, "Invalid API Key", http.StatusUnauthorized)
+			}
+			log.Error("Incorrect API Key", err)
+			return
+		}
+		log.Info("Correct API Key")
+
 		next.ServeHTTP(w, r)
 	})
 }

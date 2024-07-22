@@ -23,7 +23,7 @@ import (
 	"waas/internal/database"
 )
 
-func SendToken(request *api.SendTokenParams) (txhash string, err error) {
+func SendToken(request *api.SendCustomTokenParams) (txhash string, err error) {
 	var privateKey []byte
 	var RPC_URL string
 
@@ -112,10 +112,8 @@ func SendToken(request *api.SendTokenParams) (txhash string, err error) {
 	return txHash, nil
 }
 
-const erc20ABI = `[{"constant":false,"inputs":[{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],"name":"transfer","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"}]`
-
 // SendTokens performs the custom token transfer based on the provided request details
-func SendTokens(request *api.SendCustomTokenParams) (txhash string, err error) {
+func SendTokens(request *api.SendCustomTokenParams, decimals int, contractAddress string) (txhash string, err error) {
 	ChainID := GetChainID(request.Chain)
 
 	rpcURL := GetRPC(ChainID)
@@ -167,19 +165,17 @@ func SendTokens(request *api.SendCustomTokenParams) (txhash string, err error) {
 	auth.GasPrice = gasPrice
 
 	// Load the default ERC-20 ABI
-	parsedABI, err := abi.JSON(strings.NewReader(erc20ABI))
+	parsedABI, err := abi.JSON(strings.NewReader(ERC20ABI))
 	if err != nil {
 		return "", fmt.Errorf("failed to parse ERC-20 ABI: %w", err)
 	}
 
 	// Create an instance of the token contract
-	tokenAddress := common.HexToAddress(request.ContractAddress)
+	tokenAddress := common.HexToAddress(contractAddress)
 	token := bind.NewBoundContract(tokenAddress, parsedABI, client, client, client)
 
-	const tokenDecimals = 18
-
 	// Convert the amount to the smallest unit by multiplying by 10^decimals
-	amountInSmallestUnit := new(big.Float).Mul(new(big.Float).SetFloat64(request.Amount), new(big.Float).SetFloat64(math.Pow10(tokenDecimals)))
+	amountInSmallestUnit := new(big.Float).Mul(new(big.Float).SetFloat64(request.Amount), new(big.Float).SetFloat64(math.Pow10(decimals)))
 
 	// Convert the amount to *big.Int
 	amountBigInt := new(big.Int)

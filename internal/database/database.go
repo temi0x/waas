@@ -126,6 +126,15 @@ func StoreTxnInDb(walletID, txnID, targetAddress, tokenType, amount, status, err
 	return nil
 }
 
+func GetKeyHash(id int) (string, error) {
+	var keyHash string
+	err := DB.QueryRow("SELECT hash FROM wallet_keys WHERE user = ?", id).Scan(&keyHash)
+	if err != nil {
+		return "", err
+	}
+	return keyHash, nil
+}
+
 func LogEvent(event, data string) error {
 	_, err := DB.Exec("INSERT INTO events (event, data) VALUES (?, ?)", event, data)
 	if err != nil {
