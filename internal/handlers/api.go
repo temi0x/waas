@@ -75,12 +75,12 @@ func Handler(r *chi.Mux) {
 	// 	router.Get("/", keymanagement.GenerateAPIKey)
 	// })
 
-	r.Route("/wallet/create", func(router chi.Router) {
+	r.Route("/create", func(router chi.Router) {
 		router.Use(middleware.ValidateAPIKey)
 		router.Post("/", CreateWallet)
 	})
 
-	r.Route("/wallet/send", func(router chi.Router) {
+	r.Route("/send", func(router chi.Router) {
 		router.Use(middleware.ValidateAPIKey)
 		router.Post("/", SendToken)
 	})
