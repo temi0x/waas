@@ -75,9 +75,7 @@ func SendToken(w http.ResponseWriter, r *http.Request) {
 	var request api.SendCustomTokenParams
 	var err error
 	if err = schema.NewDecoder().Decode(&request, r.URL.Query()); err != nil {
-		// http.Error(w, err.Error(), http.StatusBadRequest)
 		api.RequestErrorHandler(w, err) // Use RequestErrorHandler for client-side errors
-
 		return
 	}
 	start := time.Now()
@@ -85,13 +83,16 @@ func SendToken(w http.ResponseWriter, r *http.Request) {
 	var response api.SendTokenResponse
 
 	//check if token is native or custom
-	if request.TokenName == "ETH" {
-		// Perform the token transfer
+	if request.TokenName == "ETH" && request.Chain == "ETH" || request.TokenName == "BNB" && request.Chain == "BSC" || request.TokenName == "MATIC" && request.Chain == "POLYGON" || request.TokenName == "FTM" && request.Chain == "FANTOM" || request.TokenName == "XDAI" && request.Chain == "XDAI" || request.TokenName == "AVAX" && request.Chain == "AVALANCHE" {
+		// Perform native token transfer
 		txHash, err := wallet.SendToken(&request)
+		transactionID := wallet.GenerateTransactionID()
+
 		if err != nil {
 			recordMetrics("failed", time.Since(start).Seconds())
 
 			analytics.StoreTransaction(analytics.TransactionLog{
+				TxnID:         transactionID,
 				WalletAddress: request.UserAddress,
 				TargetAddress: request.TargetAddress,
 				TokenName:     request.TokenName,
@@ -107,9 +108,10 @@ func SendToken(w http.ResponseWriter, r *http.Request) {
 		} else {
 			recordMetrics("success", time.Since(start).Seconds())
 			analytics.StoreTransaction(analytics.TransactionLog{
+				TxnID:         transactionID,
 				WalletAddress: request.UserAddress,
 				TargetAddress: request.TargetAddress,
-				TxnID:         txHash,
+				TxnHash:       txHash,
 				TokenName:     request.TokenName,
 				Amount:        fmt.Sprintf("%f", request.Amount),
 				Status:        "success",
@@ -127,12 +129,14 @@ func SendToken(w http.ResponseWriter, r *http.Request) {
 		tokenContractAddress := wallet.GetContractAddress(request.Chain, request.TokenName)
 		log.Println("Token contract address: ", tokenContractAddress)
 
-		// Perform the token transfer
+		// Perform token transfer
 		txHash, err := wallet.SendTokens(&request, decimals, tokenContractAddress)
+		transactionID := wallet.GenerateTransactionID()
 
 		if err != nil {
 			recordMetrics("failed", time.Since(start).Seconds())
 			analytics.StoreTransaction(analytics.TransactionLog{
+				TxnID:         transactionID,
 				WalletAddress: request.UserAddress,
 				TargetAddress: request.TargetAddress,
 				TokenName:     request.TokenName,
@@ -143,15 +147,16 @@ func SendToken(w http.ResponseWriter, r *http.Request) {
 			})
 			log.Printf("Failed to send token: %v", err)
 			errMessage := fmt.Sprintf("Failed to send token: %v", err)
-			http.Error(w, errMessage, http.StatusUnprocessableEntity)
+			api.RequestErrorHandler(w, fmt.Errorf(errMessage))
 			return
 
 		} else {
 			recordMetrics("success", time.Since(start).Seconds())
 			analytics.StoreTransaction(analytics.TransactionLog{
+				TxnID:         transactionID,
 				WalletAddress: request.UserAddress,
 				TargetAddress: request.TargetAddress,
-				TxnID:         txHash,
+				TxnHash:       txHash,
 				TokenName:     request.TokenName,
 				Amount:        fmt.Sprintf("%f", request.Amount),
 				Status:        "success",
