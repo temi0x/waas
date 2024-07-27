@@ -1,10 +1,13 @@
 package wallet
 
 import (
+	"fmt"
 	"math/big"
 	"strconv"
+	"time"
 
 	etherParams "github.com/ethereum/go-ethereum/params"
+	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -26,6 +29,19 @@ func ConvertToWei(amount float64) *big.Int {
 	wei.Int(weiInt)
 
 	return weiInt
+}
+
+func GenerateTransactionID() string {
+	// Generate a new UUID
+	id := uuid.New()
+
+	// Get the current timestamp
+	timestamp := time.Now().Unix()
+
+	// Combine the UUID and timestamp
+	transactionID := fmt.Sprintf("%d-%s", timestamp, id.String())
+
+	return transactionID
 }
 
 func GetChainID(chain string) int {

@@ -2,12 +2,10 @@ package wallet
 
 import (
 	"context"
-	"math"
-	"strings"
-
-	// "crypto/ecdsa"
 	"fmt"
+	"math"
 	"math/big"
+	"strings"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
