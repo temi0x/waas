@@ -83,7 +83,7 @@ func SendToken(w http.ResponseWriter, r *http.Request) {
 	var response api.SendTokenResponse
 
 	//check if token is native or custom
-	if request.TokenName == "ETH" && request.Chain == "ETH" || request.TokenName == "BNB" && request.Chain == "BSC" || request.TokenName == "MATIC" && request.Chain == "POLYGON" || request.TokenName == "FTM" && request.Chain == "FANTOM" || request.TokenName == "XDAI" && request.Chain == "XDAI" || request.TokenName == "AVAX" && request.Chain == "AVALANCHE" {
+	if request.TokenName == "ETH" && request.Chain == "ETH" || request.TokenName == "ETH" && request.Chain == "BASE" || request.TokenName == "BNB" && request.Chain == "BSC" || request.TokenName == "MATIC" && request.Chain == "POLYGON" || request.TokenName == "FTM" && request.Chain == "FANTOM" || request.TokenName == "XDAI" && request.Chain == "XDAI" || request.TokenName == "AVAX" && request.Chain == "AVALANCHE" {
 		// Perform native token transfer
 		txHash, err := wallet.SendToken(&request)
 		transactionID := wallet.GenerateTransactionID()

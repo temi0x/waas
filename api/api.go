@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 )
 
 type CreateWalletParams struct {
@@ -55,9 +56,35 @@ func WriteError(w http.ResponseWriter, message string, code int) {
 	json.NewEncoder(w).Encode(resp)
 }
 
+func HandleError(w http.ResponseWriter, err error) {
+	if strings.Contains(err.Error(), "transfer amount exceeds balance") {
+		// Return specific output for this error message
+		message := "Insufficient token balance"
+		WriteError(w, message, http.StatusUnprocessableEntity)
+		return
+	}
+
+	if strings.Contains(err.Error(), "no contract code at given address") {
+		// Return specific output for this error message
+		message := "Incorrect contract address"
+		WriteError(w, message, http.StatusBadRequest)
+		return
+	}
+
+	if strings.Contains(err.Error(), "insufficient funds for gas") {
+		// Return specific output for this error message
+		message := "Error sending transaction: insufficient funds for gas"
+		WriteError(w, message, http.StatusUnprocessableEntity)
+		return
+	}
+
+	// Handle other error cases here
+	// ...
+}
+
 var (
 	RequestErrorHandler = func(w http.ResponseWriter, err error) {
-		WriteError(w, err.Error(), http.StatusBadRequest)
+		HandleError(w, err)
 	}
 	InternalErrorHandler = func(w http.ResponseWriter, err error) {
 		WriteError(w, "An Unexpected Error Occurred", http.StatusInternalServerError)

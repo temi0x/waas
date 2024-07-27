@@ -85,6 +85,10 @@ func Handler(r *chi.Mux) {
 		router.Post("/", SendToken)
 	})
 
+	// r.Route("/tokens", func(router chi.Router) {
+	// 	router.Get("/", GetSupportedTokens)
+	// })
+
 	// r.Route("/wallet/sendtoken", func(router chi.Router) {
 	// 	router.Use(middleware.ValidateAPIKey)
 	// 	router.Post("/", SendTokens)
