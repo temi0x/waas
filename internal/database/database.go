@@ -111,14 +111,14 @@ func GetFromDb(whatToSelect, uniqueID, tableName string) (string, error) {
 // 	return nil
 // }
 
-func StoreTxnInDb(transactionID, walletID, targetAddress, transactionHash, amount, tokenName, status, errorMessage, timestamp string) error {
-	stmt, err := DB.Prepare("INSERT INTO wallet_transactions (transactionID, walletID, targetAddress, txHash, amount_usd, tokenName, status, errorMessage, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?,?)")
+func StoreTxnInDb(transactionID, walletID, targetAddress, transactionHash, amount, amountinUSD, tokenName, status, errorMessage, timestamp string) error {
+	stmt, err := DB.Prepare("INSERT INTO wallet_transactions (transactionID, walletID, targetAddress, txHash, amount, amount_usd, tokenName, status, errorMessage, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?,?,?)")
 	if err != nil {
 		return err
 	}
 	defer stmt.Close()
 
-	_, err = stmt.Exec(transactionID, walletID, targetAddress, transactionHash, amount, tokenName, status, errorMessage, timestamp)
+	_, err = stmt.Exec(transactionID, walletID, targetAddress, transactionHash, amount, amountinUSD, tokenName, status, errorMessage, timestamp)
 	if err != nil {
 		return err
 	}

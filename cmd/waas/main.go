@@ -24,9 +24,9 @@ func main() {
 	var r *chi.Mux = chi.NewRouter()
 	handlers.Handler(r)
 
-	fmt.Println("Starting Server on 8000")
+	fmt.Println("Starting Server on 8080")
 
-	err = http.ListenAndServe("localhost:8000", r)
+	err = http.ListenAndServe("localhost:8080", r)
 	if err != nil {
 		log.Error("Error starting server", err)
 	}

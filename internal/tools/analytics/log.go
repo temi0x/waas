@@ -14,6 +14,7 @@ type TransactionLog struct {
 	TargetAddress string
 	TokenName     string
 	Amount        string
+	AmountInUSD   string
 	Status        string
 	ErrorMessage  string
 	Timestamp     string
@@ -30,7 +31,7 @@ func LogEvent(event string, data string) error {
 }
 
 func StoreTransaction(txn TransactionLog) error {
-	err := database.StoreTxnInDb(txn.TxnID, txn.WalletAddress, txn.TargetAddress, txn.TxnHash, txn.Amount, txn.TokenName, txn.Status, txn.ErrorMessage, txn.Timestamp)
+	err := database.StoreTxnInDb(txn.TxnID, txn.WalletAddress, txn.TargetAddress, txn.TxnHash, txn.Amount, txn.AmountInUSD, txn.TokenName, txn.Status, txn.ErrorMessage, txn.Timestamp)
 	if err != nil {
 		log.Printf("Error storing transaction: %v", err)
 		return fmt.Errorf("error storing transaction: %v", err)
