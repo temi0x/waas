@@ -18,7 +18,9 @@ import (
 
 	"waas/api"
 	"waas/config"
+	abis "waas/internal/abi"
 	"waas/internal/database"
+	"waas/internal/tools/transaction"
 )
 
 func SendToken(request *api.SendCustomTokenParams) (txhash string, err error) {
@@ -31,7 +33,7 @@ func SendToken(request *api.SendCustomTokenParams) (txhash string, err error) {
 	}
 	platformPIN := cfg.CrypteaKey
 
-	ChainID := GetChainID(request.Chain)
+	ChainID := transaction.GetChainID(request.Chain)
 
 	RPC_URL = GetRPC(ChainID)
 
@@ -85,7 +87,7 @@ func SendToken(request *api.SendCustomTokenParams) (txhash string, err error) {
 		return "", fmt.Errorf("error getting gas price: %v", err)
 	}
 
-	amount := ConvertToWei(request.Amount)
+	amount := transaction.ConvertToWei(request.Amount)
 	value := new(big.Int).Set(amount)
 	gasLimit := uint64(21000) // in units
 
@@ -105,24 +107,18 @@ func SendToken(request *api.SendCustomTokenParams) (txhash string, err error) {
 		return "", fmt.Errorf("error sending transaction: %v", err)
 	}
 
-	txHash := GetBlockExplorerURL(ChainID, signedTx.Hash().Hex())
+	txHash := transaction.GetBlockExplorerURL(ChainID, signedTx.Hash().Hex())
 
 	return txHash, nil
 }
 
 // SendTokens performs the custom token transfer based on the provided request details
 func SendTokens(request *api.SendCustomTokenParams, decimals int, contractAddress string) (txhash string, err error) {
-	ChainID := GetChainID(request.Chain)
+	ChainID := transaction.GetChainID(request.Chain)
 
 	rpcURL := GetRPC(ChainID)
 	if rpcURL == "" {
 		return "", fmt.Errorf("unsupported chain ID: %v", request.Chain)
-	}
-
-	// Connect to the Ethereum client
-	client, err := ethclient.Dial(rpcURL)
-	if err != nil {
-		return "", fmt.Errorf("failed to connect to the Ethereum client: %w", err)
 	}
 
 	chainID := big.NewInt(int64(ChainID)) // Chain ID for Ethereum mainnet
@@ -149,6 +145,12 @@ func SendTokens(request *api.SendCustomTokenParams, decimals int, contractAddres
 		return "", fmt.Errorf("failed to parse private key: %w", err)
 	}
 
+	// Connect to the Ethereum client
+	client, err := ethclient.Dial(rpcURL)
+	if err != nil {
+		return "", fmt.Errorf("failed to connect to the Ethereum client: %w", err)
+	}
+
 	// Prepare the transaction options
 	auth, err := bind.NewKeyedTransactorWithChainID(privateKey, chainID)
 	if err != nil {
@@ -163,7 +165,7 @@ func SendTokens(request *api.SendCustomTokenParams, decimals int, contractAddres
 	auth.GasPrice = gasPrice
 
 	// Load the default ERC-20 ABI
-	parsedABI, err := abi.JSON(strings.NewReader(ERC20ABI))
+	parsedABI, err := abi.JSON(strings.NewReader(abis.ERC20ABI))
 	if err != nil {
 		return "", fmt.Errorf("failed to parse ERC-20 ABI: %w", err)
 	}
@@ -186,6 +188,6 @@ func SendTokens(request *api.SendCustomTokenParams, decimals int, contractAddres
 	}
 
 	log.Printf("Token sent: %s", tx.Hash().Hex())
-	txHash := GetBlockExplorerURL(ChainID, tx.Hash().Hex())
+	txHash := transaction.GetBlockExplorerURL(ChainID, tx.Hash().Hex())
 	return txHash, nil
 }

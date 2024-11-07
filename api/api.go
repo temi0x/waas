@@ -11,21 +11,21 @@ type CreateWalletParams struct {
 }
 
 type SendTokenParams struct {
-	UserAddress   string  `json:"user_address"`   // user's wallet address
-	PIN           string  `json:"pin"`            // user's pin, usually 6 digits
-	TargetAddress string  `json:"target_address"` // e.g., "0x1234..."
-	Amount        float64 `json:"amount"`         // e.g., 0.1, 0.3
-	Chain         string  `json:"chain"`          // e.g., 1 for Ethereum, 3 for Ropsten
-	TokenName     string  `json:"token_name"`     // e.g., "ETH", "USDT"
+	UserAddress   string  `json:"userAddress"`   // user's wallet address
+	PIN           string  `json:"pin"`           // user's pin, usually 6 digits
+	TargetAddress string  `json:"targetAddress"` // e.g., "0x1234..."
+	Amount        float64 `json:"amount"`        // e.g., 0.1, 0.3
+	Chain         string  `json:"chain"`         // e.g., 1 for Ethereum, 3 for Ropsten
+	TokenName     string  `json:"tokenName"`     // e.g., "ETH", "USDT"
 }
 
 type SendCustomTokenParams struct {
-	UserAddress   string  `json:"user_address"`   // user's wallet address
-	TargetAddress string  `json:"target_address"` // Target address for the custom token
-	TokenName     string  `json:"token_name"`     // Contract address for the custom token
-	Amount        float64 `json:"amount"`         // Amount of custom token to send
-	PIN           string  `json:"pin"`            // user's pin, usually 6 digits
-	Chain         string  `json:"chain"`          // chain ID for request (1, for Ethereum), (3, for Ropsten), etc
+	UserAddress   string  `json:"userAddress"`   // user's wallet address
+	TargetAddress string  `json:"targetAddress"` // Target address for the custom token
+	TokenName     string  `json:"tokenName"`     // Contract address for the custom token
+	Amount        float64 `json:"amount"`        // Amount of custom token to send
+	PIN           string  `json:"pin"`           // user's pin, usually 6 digits
+	Chain         string  `json:"chain"`         // blockchain to be used for request (ETH, BASE, ARB, etc)
 }
 
 type SendTokenResponse struct {
@@ -34,9 +34,17 @@ type SendTokenResponse struct {
 }
 
 type CreateWaasResponse struct {
-	Success    bool   `json:"Success"`        // Indicate whether operation was successful
-	Address    string `json:"wallet_address"` // Address of the new wallet
-	Ciphertext []byte `json:"ciphertext"`     // Encrypted private key
+	Success    bool   `json:"Success"`       // Indicate whether operation was successful
+	Address    string `json:"walletAddress"` // Address of the new wallet
+	Ciphertext []byte `json:"ciphertext"`    // Encrypted private key
+}
+
+type SwapParams struct {
+	UserAddress string  `json:"userAddress"` // user's wallet address
+	TargetToken string  `json:"targetToken"` // Target token of the swap operation
+	Amount      float64 `json:"amount"`      // amount to be received (in USDT)
+	PIN         string  `json:"pin"`         // user's PIN, usually 6 digits
+	Chain       string  `json:"chain"`       // blockchain to process transaction on
 }
 
 // Error response

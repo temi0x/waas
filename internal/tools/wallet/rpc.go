@@ -29,6 +29,8 @@ func GetRPC(chainID int) string {
 	RPC_ZETACHAIN := cfg.RPC_ZETACHAIN
 	RPC_BLAST := cfg.RPC_BLAST
 
+	RPC_FVM_CALIBRATION := cfg.RPC_FILECOIN_CALIBRATION
+
 	switch chainID {
 	case 1:
 		rpc = RPC_ETHEREUM
@@ -58,6 +60,8 @@ func GetRPC(chainID int) string {
 		rpc = "https://goerli.infura.io/v3/your_infura_project_id"
 	case 11155111:
 		rpc = RPC_SEPOLIA
+	case 314159:
+		rpc = RPC_FVM_CALIBRATION
 	default:
 		rpc = "http://localhost:8545"
 	}
